@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ruang Tumbuh: Time Master — Tepat Waktu ke Sekolah</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-canvas: #F7F5F0;
+      --bg-surface: #FFFFFF;
+      --bg-soft: #EFECE6;
+      --accent-sage: #5A7668;
+      --accent-sage-dark: #435A4E;
+      --accent-terracotta: #B87D64;
+      --text-primary: #252C28;
+      --text-secondary: #5C6660;
+      --border-hairline: #E3DFD7;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: var(--bg-canvas);
+      color: var(--text-primary);
+    }
+
+    .stage-card {
+      transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+    }
+
+    .stage-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 12px 24px -10px rgba(37, 44, 40, 0.12);
+      border-color: #C7D3CC;
+    }
+  </style>
+</head>
+<body class="antialiased">
+  <div id="root"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/react@18.3.1/umd/react.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@babel/standalone@7.26.4/babel.min.js"></script>
+
+  <script type="text/babel">
+    const { useState } = React;
+
+    const LEVELS = [
+      {
+        id: 1,
+        kind: "module",
+        badge: "Level 1",
+        wordwall: { label: "Kenali Musuh Waktu", url: "https://wordwall.net/play/123797/996/887?wwmethod=link" },
+        title: "Kenali Musuh Waktu",
+        subtitle: "Psikoedukasi Pemicu Keterlambatan & Manajemen Waktu Pagi",
+        icon: "⏳",
+        summary: "Memahami jebakan psikologis seperti time blindness dan kebiasaan pagi yang diam-diam mencuri waktu berangkatmu.",
+        psychoeducation: {
+          heading: "Mengapa Kita Sering Salah Memperkirakan Waktu?",
+          paragraphs: [
+            "Dalam psikologi manajemen diri, banyak pelajar mengalami fenomena yang disebut Time Blindness (kebutaan waktu)—yaitu kecenderungan meremehkan berapa lama waktu yang dibutuhkan untuk menyelesaikan aktivitas rutin seperti mandi, sarapan, atau mengenakan seragam.",
+            "Selain itu, di pagi hari otak berada dalam kondisi transisi tidur (sleep inertia). Jika semua keputusan—seperti mencari buku, memilih kaus kaki, atau mengecek jadwal—baru dilakukan setelah bangun tidur, otak mengalami kelelahan keputusan (decision fatigue) sehingga gerakan menjadi jauh lebih lambat."
+          ],
+          formulaTitle: "Simulasi Rumus Hitung Mundur (Backward Time-Blocking)",
+          formulaIntro: "Gunakan patokan ini agar tidak lagi menebak-nebak jam berangkat (contoh masuk sekolah pukul 07.00):",
+          timeline: [
+            { time: "07.00", activity: "Bel masuk sekolah berbunyi (sudah berada di area kelas)." },
+            { time: "06.45", activity: "Target tiba di gerbang sekolah (cadangan 15 menit untuk parkir & jalan ke kelas)." },
+            { time: "06.20", activity: "Jam wajib keluar rumah (asumsi perjalanan 20 menit + 5 menit lampu merah/macet)." },
+            { time: "05.45", activity: "Mulai mandi, berpakaian seragam lengkap, dan sarapan (alokasi 35 menit)." },
+            { time: "05.30", activity: "Bangun tidur & merapikan tempat tidur tanpa membuka media sosial." }
+          ]
+        },
+        cards: [
+          {
+            title: "1. Jebakan Tombol Snooze",
+            why: "Menunda alarm 5–10 menit berkali-kali membuat otak memulai siklus tidur baru yang terpotong paksa, memicu rasa pusing dan lemas.",
+            fix: "Pasang 1 alarm utama dan letakkan HP minimal 2 meter dari kasur agar kamu harus berdiri untuk mematikannya."
+          },
+          {
+            title: "2. Persiapan Pagi yang Menumpuk",
+            why: "Mencari kaus kaki, topi, ikat pinggang, atau buku pelajaran di pagi hari sering menghabiskan 10–15 menit penuh kepanikan.",
+            fix: "Pindahkan seluruh persiapan barang ke malam hari sebelum pukul 21.00 di satu titik dekat pintu."
+          },
+          {
+            title: "3. Distorsi Waktu Layar (Screen Drift)",
+            why: "Niat awal hanya mengecek pesan selama 2 menit di kasur sering berubah menjadi 20 menit tanpa terasa karena algoritma konten.",
+            fix: "Terapkan aturan 'No Screen Before Uniform': dilarang membuka media sosial atau game sebelum seragam terpasang rapi."
+          },
+          {
+            title: "4. Mengabaikan Hambatan Jalan",
+            why: "Menghitung waktu tempuh berdasarkan kondisi jalanan sepi membuat keterlambatan tak terhindarkan saat terjadi antrean atau hujan.",
+            fix: "Selalu tambahkan buffer time (waktu cadangan) minimal 10–15 menit dari durasi perjalanan tercepat."
+          }
+        ],
+        reflectionLabel: "Dari keempat musuh waktu di atas, mana yang paling sering terjadi padamu? Tuliskan juga jam berapa seharusnya kamu keluar rumah besok pagi:",
+        checks: [
+          "Saya memahami penyebab munculnya kebiasaan terlambat pada rutinitas pagi saya.",
+          "Saya sudah menghitung jam wajib keluar rumah beserta waktu cadangan perjalanan."
+        ]
+      },
+      {
+        id: 2,
+        kind: "module",
+        badge: "Level 2",
+        wordwall: { label: "Cari Tahu Dampaknya", url: "https://wordwall.net/resource/123798609?wwmethod=link" },
+        title: "Cari Tahu Dampaknya",
+        subtitle: "Psikoedukasi Efek Domino Keterlambatan bagi Diri & Lingkungan",
+        icon: "🔎",
+        summary: "Menggali dampak keterlambatan pada kesiapan emosi, daya serap belajar, kepercayaan sosial, dan karakter masa depan.",
+        psychoeducation: {
+          heading: "Efek Domino Keterlambatan di Sekolah",
+          paragraphs: [
+            "Banyak siswa mengira datang terlambat hanya berdampak pada catatan pelanggaran tata tertib atau teguran guru piket. Padahal secara psikologis, berangkat dalam kondisi tergesa-gesa memicu respons stres akut (peningkatan hormon kortisol dan adrenalin).",
+            "Saat tubuh masuk ke ruang kelas dengan napas terengah dan rasa cemas akan ditegur, bagian otak yang bertugas mengatur konsentrasi dan memori kerja (prefrontal cortex) membutuhkan waktu 15–20 menit untuk kembali tenang. Akibatnya, materi awal pelajaran sering terlewat meski kamu sudah duduk di bangku."
+          ],
+          formulaTitle: "Perbandingan Dua Skenario Pagi Siswa",
+          formulaIntro: "Perhatikan perbedaan kondisi mental antara dua pola kedatangan berikut:",
+          timeline: [
+            { time: "Terlambat", activity: "Bangun mepet → panik mencari barang → ngebut di jalan → ditegur di gerbang → masuk kelas malu & sulit fokus di jam ke-1." },
+            { time: "On Time", activity: "Bangun tenang → barang sudah siap → perjalanan aman → tiba 10 menit lebih awal → sempat mengobrol santai & siap menerima pelajaran." }
+          ]
+        },
+        cards: [
+          {
+            title: "1. Dampak Psikologis & Emosi",
+            why: "Rasa terburu-buru memicu emosi negatif seperti mudah marah, panik, malu saat menjadi pusat perhatian kelas, dan menurunkan rasa percaya diri.",
+            fix: "Datang lebih awal memberi ruang transisi mental sehingga suasana hati tetap stabil sepanjang hari."
+          },
+          {
+            title: "2. Dampak Akademik & Konsentrasi",
+            why: "Sepuluh menit pertama pelajaran biasanya berisi apersepsi dan tujuan belajar. Ketinggalan bagian ini membuatmu kesulitan mengikuti alur materi.",
+            fix: "Hadir sebelum bel masuk membantumu menyiapkan buku dan pikiran sebelum guru memulai penjelasan."
+          },
+          {
+            title: "3. Dampak Sosial & Kepercayaan",
+            why: "Ketukan pintu saat pelajaran sudah berlangsung memecah fokus teman sekelas dan perlahan mengurangi kepercayaan guru maupun teman kelompok.",
+            fix: "Menjaga ketepatan waktu membangun reputasi sebagai pribadi yang dapat diandalkan."
+          },
+          {
+            title: "4. Dampak Pembentukan Karakter",
+            why: "Kebiasaan menoleransi keterlambatan kecil melatih otak untuk mencari pembenaran, yang kelak berisiko terbawa ke perkuliahan dan dunia kerja.",
+            fix: "Berlatih disiplin di sekolah adalah investasi karakter profesional untuk masa depanmu."
+          }
+        ],
+        reflectionLabel: "Dampak mana yang paling terasa merugikan dirimu selama ini, dan perubahan suasana hati seperti apa yang ingin kamu rasakan saat tiba di sekolah?",
+        checks: [
+          "Saya menyadari bahwa datang terlambat berdampak pada ketenangan emosi dan fokus belajar saya.",
+          "Saya berkomitmen menjaga kepercayaan guru, teman, dan diri sendiri melalui ketepatan waktu."
+        ]
+      },
+      {
+        id: 3,
+        kind: "sort",
+        badge: "Level 3",
+        wordwall: { label: "Mission : On Time! Memilah solusi yang tepat dan tindakan yang kurang tepat dalam mengatasi keterlambatan", url: "https://wordwall.net/resource/123799353?wwmethod=link" },
+        title: "Mission: On Time!",
+        subtitle: "Pilah solusi yang tepat & tindakan yang kurang tepat",
+        icon: "🧭",
+        summary: "Uji pemahamanmu dari Level 1 & 2! Pilah mana solusi yang tepat dan mana tindakan yang kurang tepat dalam mengatasi keterlambatan.",
+        prompt: "Pilah setiap pernyataan ke dalam kategori Solusi Tepat atau Tindakan Kurang Tepat.",
+        leftOption: {
+          key: "solusi_tepat",
+          label: "Solusi Tepat",
+          activeClass: "bg-[#E4EFE8] text-[#28533B] border-[#9EC0AC]"
+        },
+        rightOption: {
+          key: "kurang_tepat",
+          label: "Tindakan Kurang Tepat",
+          activeClass: "bg-[#F6E9E4] text-[#7E3C27] border-[#DEB5A6]"
+        },
+        items: [
+          {
+            id: "l3_1",
+            text: "Menyiapkan tas, buku pelajaran, dan seragam lengkap sebelum tidur malam.",
+            answer: "solusi_tepat",
+            note: "Solusi tepat: mencegah kelelahan keputusan (decision fatigue) dan kepanikan saat pagi hari."
+          },
+          {
+            id: "l3_2",
+            text: "Meletakkan HP tepat di bawah bantal lalu menekan tombol tunda alarm berkali-kali.",
+            answer: "kurang_tepat",
+            note: "Kurang tepat: memicu tidur terpotong dan memperparah rasa berat saat bangun."
+          },
+          {
+            id: "l3_3",
+            text: "Menetapkan jam berangkat dengan tambahan waktu cadangan (buffer time) 10–15 menit.",
+            answer: "solusi_tepat",
+            note: "Solusi tepat: memberi ruang aman bila terjadi antrean atau hambatan di perjalanan."
+          },
+          {
+            id: "l3_4",
+            text: "Membuka media sosial atau game terlebih dahulu sebelum mandi dan bersiap ke sekolah.",
+            answer: "kurang_tepat",
+            note: "Kurang tepat: memicu screen drift yang menyita 15–20 menit waktu pagi tanpa terasa."
+          },
+          {
+            id: "l3_5",
+            text: "Meletakkan alarm agak jauh dari kasur agar tubuh berdiri saat mematikannya.",
+            answer: "solusi_tepat",
+            note: "Solusi tepat: membantu kesadaran tubuh terbangun sepenuhnya."
+          },
+          {
+            id: "l3_6",
+            text: "Begadang hingga larut malam lalu mengandalkan tidur singkat di kelas keesokan harinya.",
+            answer: "kurang_tepat",
+            note: "Kurang tepat: merusak siklus tidur dan menurunkan daya serap materi di kelas."
+          }
+        ]
+      },
+      {
+        id: 4,
+        kind: "sort",
+        badge: "Final Level",
+        wordwall: { label: "Time Master! : Memilah sikap yang menunjukkan disiplin dan tanggung jawab serta sikap yang kurang tepat.", url: "https://wordwall.net/resource/123800103?wwmethod=link" },
+        title: "Time Master!",
+        subtitle: "Pilah sikap disiplin & tanggung jawab vs kurang tepat",
+        icon: "🏅",
+        summary: "Tahap puncak untuk membedakan sikap disiplin dan bertanggung jawab dengan sikap yang kurang tepat.",
+        prompt: "Pilih kategori yang paling sesuai untuk setiap sikap berikut hingga kamu menuntaskan Final Level.",
+        leftOption: {
+          key: "disiplin_tanggung_jawab",
+          label: "Disiplin & Tanggung Jawab",
+          activeClass: "bg-[#E4EFE8] text-[#28533B] border-[#9EC0AC]"
+        },
+        rightOption: {
+          key: "kurang_tepat",
+          label: "Sikap Kurang Tepat",
+          activeClass: "bg-[#F6E9E4] text-[#7E3C27] border-[#DEB5A6]"
+        },
+        items: [
+          {
+            id: "l4_1",
+            text: "Mengakui saat terlambat dan memperbaiki jam tidur tanpa menyalahkan orang lain.",
+            answer: "disiplin_tanggung_jawab",
+            note: "Disiplin & tanggung jawab: berani mengevaluasi diri secara jujur."
+          },
+          {
+            id: "l4_2",
+            text: "Mengarang alasan palsu agar tidak tercatat terlambat oleh guru piket.",
+            answer: "kurang_tepat",
+            note: "Sikap kurang tepat: menutupi masalah tidak membantu memperbaiki kebiasaan."
+          },
+          {
+            id: "l4_3",
+            text: "Berusaha tiba lebih awal sebagai bentuk menghargai waktu diri sendiri dan warga sekolah.",
+            answer: "disiplin_tanggung_jawab",
+            note: "Disiplin & tanggung jawab: tumbuh dari kesadaran menghargai waktu."
+          },
+          {
+            id: "l4_4",
+            text: "Menganggap terlambat wajar karena teman lain juga sering datang terlambat.",
+            answer: "kurang_tepat",
+            note: "Sikap kurang tepat: standar disiplin diri sebaiknya tidak bergantung pada perilaku orang lain."
+          },
+          {
+            id: "l4_5",
+            text: "Meminta izin dengan sopan saat masuk kelas dan mengejar catatan pelajaran yang tertinggal.",
+            answer: "disiplin_tanggung_jawab",
+            note: "Disiplin & tanggung jawab: menunjukkan kepedulian pada proses belajar."
+          },
+          {
+            id: "l4_6",
+            text: "Selalu bergantung pada orang tua untuk membangunkan dan menyiapkan perlengkapan sekolah.",
+            answer: "kurang_tepat",
+            note: "Sikap kurang tepat: kemandirian mengelola waktu perlu dilatih sejak dini."
+          }
+        ]
+      }
+    ];
+
+    function App() {
+      const [selectedId, setSelectedId] = useState(null);
+      const [checks, setChecks] = useState({});
+      const [reflections, setReflections] = useState({});
+      const [sortedChoices, setSortedChoices] = useState({});
+      const [studentName, setStudentName] = useState("");
+      const [studentClass, setStudentClass] = useState("");
+      const [saving, setSaving] = useState(false);
+      const [saveStatus, setSaveStatus] = useState(null);
+
+      const currentLevel = LEVELS.find((l) => l.id === selectedId);
+
+      const toggleCheck = (levelId, idx) => {
+        const key = `${levelId}-${idx}`;
+        setChecks((prev) => ({ ...prev, [key]: !prev[key] }));
+      };
+
+      const pickSortOption = (itemId, optionKey) => {
+        setSortedChoices((prev) => ({ ...prev, [itemId]: optionKey }));
+      };
+
+      const resetSortLevel = (level) => {
+        setSortedChoices((prev) => {
+          const next = { ...prev };
+          level.items.forEach((it) => delete next[it.id]);
+          return next;
+        });
+      };
+
+      const countCorrectInLevel = (level) => {
+        if (level.kind !== "sort") return 0;
+        return level.items.filter((it) => sortedChoices[it.id] === it.answer).length;
+      };
+
+      const checkLevelDone = (level) => {
+        if (level.kind === "module") {
+          return level.checks.every((_, idx) => !!checks[`${level.id}-${idx}`]);
+        }
+        if (level.kind === "sort") {
+          return countCorrectInLevel(level) === level.items.length;
+        }
+        return false;
+      };
+
+      const doneCount = LEVELS.filter(checkLevelDone).length;
+      const progressPct = Math.round((doneCount / LEVELS.length) * 100);
+
+      const handleSave = () => {
+        setSaving(true);
+        setSaveStatus(null);
+
+        const payload = {
+          studentName,
+          studentClass,
+          completedLevelsText: `${doneCount}/${LEVELS.length}`,
+          progressPercent: progressPct,
+          reflectionL1: reflections[1] || "",
+          reflectionL2: reflections[2] || "",
+          scoreL3: `${countCorrectInLevel(LEVELS[2])}/${LEVELS[2].items.length}`,
+          scoreL4: `${countCorrectInLevel(LEVELS[3])}/${LEVELS[3].items.length}`
+        };
+
+        if (window.google && window.google.script && window.google.script.run) {
+          window.google.script.run
+            .withSuccessHandler((res) => {
+              setSaving(false);
+              setSaveStatus({
+                ok: !!res.success,
+                text: res.message || "Data tersimpan."
+              });
+            })
+            .withFailureHandler((err) => {
+              setSaving(false);
+              setSaveStatus({
+                ok: false,
+                text: "Terjadi kendala koneksi: " + err.message
+              });
+            })
+            .saveStudentProgress(payload);
+        } else {
+          setTimeout(() => {
+            setSaving(false);
+            setSaveStatus({
+              ok: true,
+              text: "Mode pratinjau aktif: refleksi dan skor kamu sudah tercatat di sesi ini. Saat di-deploy di Google Apps Script, data otomatis tersimpan ke Google Sheets."
+            });
+          }, 400);
+        }
+      };
+
+      return (
+        <div className="min-h-screen flex flex-col">
+          {/* Top Bar */}
+          <header className="sticky top-0 z-20 bg-[#F7F5F0]/90 backdrop-blur border-b border-[#E3DFD7]">
+            <div className="max-w-5xl mx-auto px-5 py-3.5 flex items-center justify-between gap-4">
+              <button
+                onClick={() => setSelectedId(null)}
+                className="flex items-center gap-3 text-left group"
+              >
+                <span className="w-9 h-9 rounded-xl bg-[#5A7668] text-white font-bold text-sm flex items-center justify-center shadow-xs group-hover:bg-[#435A4E] transition-colors">
+                  BK
+                </span>
+                <div>
+                  <div className="font-bold text-sm sm:text-base text-[#252C28] leading-tight">
+                    Ruang Tumbuh
+                  </div>
+                  <div className="text-[11px] sm:text-xs text-[#6B756F]">
+                    Self-Help Tepat Waktu ke Sekolah
+                  </div>
+                </div>
+              </button>
+
+              {/* Progress Indicator */}
+              <div className="flex items-center gap-3 bg-white px-3.5 py-1.5 rounded-full border border-[#E3DFD7]">
+                <span className="text-xs font-medium text-[#5C6660] hidden sm:inline">
+                  Progres Level
+                </span>
+                <div className="w-20 sm:w-24 h-2 rounded-full bg-[#ECE9E2] overflow-hidden">
+                  <div
+                    className="h-full bg-[#5A7668] rounded-full transition-all duration-300"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+                <span className="text-xs font-bold text-[#435A4E]">
+                  {doneCount}/{LEVELS.length}
+                </span>
+              </div>
+            </div>
+          </header>
+
+          {/* Main Content */}
+          <main className="flex-1 max-w-5xl w-full mx-auto px-5 py-9">
+            {!currentLevel ? (
+              <>
+                {/* Intro Section */}
+                <section className="mb-9">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#E8EFEA] text-[#3F594C] text-xs font-semibold mb-4">
+                    <span>🌿</span>
+                    <span>Layanan Bimbingan & Konseling Mandiri</span>
+                  </div>
+
+                  <h1 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#222925] mb-3">
+                    Hallo Sobat Pelajar! 👋
+                  </h1>
+                  <p className="text-base sm:text-lg text-[#4D5752] max-w-2xl leading-relaxed mb-6">
+                    Pelajari cara kerja kebiasaan waktumu, pahami dampaknya, dan raih gelar{" "}
+                    <span className="font-bold text-[#3F594C]">Time Master</span> lewat 4 level
+                    interaktif berikut.
+                  </p>
+
+                  <div className="bg-white rounded-2xl p-6 border border-[#E3DFD7] shadow-2xs">
+                    <div className="text-xs font-bold uppercase tracking-wider text-[#5A7668] mb-2">
+                      Alur Belajar & Latihan Mandiri
+                    </div>
+                    <p className="text-sm sm:text-base text-[#4A534E] leading-relaxed">
+                      Mulailah dari <strong>Level 1</strong> dan <strong>Level 2</strong> untuk
+                      memahami materi psikoedukasi seputar penyebab dan dampak keterlambatan, lalu
+                      uji ketepatan strategimu di <strong>Level 3</strong> dan{" "}
+                      <strong>Final Level</strong>.
+                    </p>
+                  </div>
+                </section>
+
+                {/* 4 Levels Grid */}
+                <section className="mb-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-lg sm:text-xl font-bold text-[#222925]">
+                      Pilih Level Perjalanan
+                    </h2>
+                    {doneCount === LEVELS.length && (
+                      <span className="text-xs font-bold px-3 py-1 rounded-full bg-[#E4EFE8] text-[#28533B] border border-[#9EC0AC]">
+                        🏅 Time Master Tuntas!
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {LEVELS.map((lvl) => {
+                      const finished = checkLevelDone(lvl);
+                      const isFinal = lvl.id === 4;
+
+                      return (
+                        <div
+                          key={lvl.id}
+                          onClick={() => setSelectedId(lvl.id)}
+                          className={`stage-card cursor-pointer rounded-2xl p-6 border flex flex-col justify-between ${
+                            isFinal
+                              ? "bg-[#F2F6F3] border-[#C6D5CC]"
+                              : "bg-white border-[#E3DFD7]"
+                          }`}
+                        >
+                          <div>
+                            <div className="flex items-center justify-between gap-3 mb-4">
+                              <span
+                                className={`text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-lg ${
+                                  isFinal
+                                    ? "bg-[#5A7668] text-white"
+                                    : "bg-[#EFECE6] text-[#455A4F]"
+                                }`}
+                              >
+                                {lvl.badge}
+                              </span>
+                              <span className="text-2xl" aria-hidden="true">
+                                {lvl.icon}
+                              </span>
+                            </div>
+
+                            <h3 className="text-xl font-bold text-[#222925] mb-1">
+                              {lvl.title}
+                            </h3>
+                            <div className="text-xs font-medium text-[#6B756F] mb-3">
+                              {lvl.subtitle}
+                            </div>
+                            <p className="text-sm text-[#4D5752] leading-relaxed mb-6">
+                              {lvl.summary}
+                            </p>
+                          </div>
+
+                          <div className="pt-4 border-t border-[#ECE8E0] flex items-center justify-between text-xs">
+                            <span className="font-bold text-[#435A4E]">
+                              {lvl.kind === "sort" ? "Mulai Pilah Kartu →" : "Baca Materi & Refleksi →"}
+                            </span>
+                            {finished ? (
+                              <span className="font-bold px-2.5 py-0.5 rounded-full bg-[#E4EFE8] text-[#28533B]">
+                                ✓ Selesai
+                              </span>
+                            ) : (
+                              <span className="text-[#88918C]">Belum selesai</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </section>
+
+                {/* Optional Summary & Save Box for BK */}
+                <section className="bg-white rounded-2xl p-6 border border-[#E3DFD7]">
+                  <h3 className="text-base font-bold text-[#222925] mb-1">
+                    Simpan Refleksi & Progres (Opsional)
+                  </h3>
+                  <p className="text-xs sm:text-sm text-[#6B756F] mb-4">
+                    Isi identitas singkat jika ingin menyimpan catatan refleksi dan skor levelmu ke rekap layanan BK.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-4">
+                    <input
+                      type="text"
+                      value={studentName}
+                      onChange={(e) => setStudentName(e.target.value)}
+                      placeholder="Nama / Inisial (misal: Raka / R.A.)"
+                      className="rounded-xl border border-[#DDD8CE] bg-[#FAF9F6] px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5A7668] focus:bg-white"
+                    />
+                    <input
+                      type="text"
+                      value={studentClass}
+                      onChange={(e) => setStudentClass(e.target.value)}
+                      placeholder="Kelas (misal: XI IPA 2 / X TKJ 1)"
+                      className="rounded-xl border border-[#DDD8CE] bg-[#FAF9F6] px-3.5 py-2.5 text-sm focus:outline-none focus:border-[#5A7668] focus:bg-white"
+                    />
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="text-xs text-[#5C6660]">
+                      Skor Pilah: Level 3 ({countCorrectInLevel(LEVELS[2])}/6) • Final Level ({countCorrectInLevel(LEVELS[3])}/6)
+                    </div>
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="px-5 py-2.5 rounded-xl bg-[#5A7668] hover:bg-[#435A4E] text-white text-sm font-semibold transition-colors disabled:opacity-50"
+                    >
+                      {saving ? "Menyimpan..." : "Simpan Catatan"}
+                    </button>
+                  </div>
+
+                  {saveStatus && (
+                    <div
+                      className={`mt-4 p-3.5 rounded-xl text-xs sm:text-sm font-medium ${
+                        saveStatus.ok
+                          ? "bg-[#E4EFE8] text-[#28533B]"
+                          : "bg-[#F6E9E4] text-[#7E3C27]"
+                      }`}
+                    >
+                      {saveStatus.text}
+                    </div>
+                  )}
+                </section>
+              </>
+            ) : (
+              /* Detail Level View */
+              <div className="max-w-3xl mx-auto">
+                <button
+                  onClick={() => setSelectedId(null)}
+                  className="mb-5 inline-flex items-center gap-2 text-sm font-semibold text-[#435A4E] hover:text-[#252C28]"
+                >
+                  <span>←</span> Kembali ke Daftar Level
+                </button>
+
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-[#E3DFD7] shadow-2xs">
+                  {/* Level Title */}
+                  <div className="flex items-start justify-between gap-4 pb-5 border-b border-[#EFECE6]">
+                    <div>
+                      <span className="inline-block text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full bg-[#E8EFEA] text-[#3F594C] mb-2.5">
+                        {currentLevel.badge}
+                      </span>
+                      <h2 className="text-2xl sm:text-3xl font-extrabold text-[#222925]">
+                        {currentLevel.title}
+                      </h2>
+                      <p className="text-xs sm:text-sm text-[#6B756F] mt-1">
+                        {currentLevel.subtitle}
+                      </p>
+                    </div>
+                    <div className="w-12 h-12 rounded-2xl bg-[#F2EFE9] flex items-center justify-center text-2xl shrink-0">
+                      {currentLevel.icon}
+                    </div>
+                  </div>
+
+                  {/* Level 1 & 2 Deep Psychoeducation Content */}
+                  {currentLevel.kind === "module" && (
+                    <>
+                      {/* Main Psychoeducation Article */}
+                      <div className="my-6 p-5 sm:p-6 rounded-2xl bg-[#F4F6F4] border border-[#DCE4DF]">
+                        <div className="text-xs font-bold uppercase tracking-wider text-[#435A4E] mb-2">
+                          📚 Materi Psikoedukasi
+                        </div>
+                        <h3 className="text-base sm:text-lg font-bold text-[#222925] mb-3">
+                          {currentLevel.psychoeducation.heading}
+                        </h3>
+                        <div className="space-y-3 text-sm sm:text-base text-[#37413C] leading-relaxed">
+                          {currentLevel.psychoeducation.paragraphs.map((p, idx) => (
+                            <p key={idx}>{p}</p>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* 4 Cards with Why & Fix */}
+                      <div className="mb-7">
+                        <h3 className="text-base font-bold text-[#222925] mb-3">
+                          {currentLevel.id === 1
+                            ? "Bedah 4 Musuh Waktu & Cara Mengatasinya:"
+                            : "Bedah 4 Dimensi Dampak & Langkah Perbaikannya:"}
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {currentLevel.cards.map((c, idx) => (
+                            <div
+                              key={idx}
+                              className="p-4 sm:p-5 rounded-2xl bg-[#FAF9F6] border border-[#ECE8E0] flex flex-col justify-between"
+                            >
+                              <div>
+                                <h4 className="text-sm font-bold text-[#222925] mb-2">
+                                  {c.title}
+                                </h4>
+                                <p className="text-xs sm:text-sm text-[#56605B] leading-relaxed mb-3">
+                                  {c.why}
+                                </p>
+                              </div>
+                              <div className="pt-2.5 border-t border-[#E6E2DA] text-xs text-[#2E5440] font-medium leading-relaxed">
+                                <span className="font-bold">Solusi: </span>
+                                {c.fix}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Timeline / Scenario Box */}
+                      <div className="mb-7 p-5 rounded-2xl bg-[#FAF9F6] border border-[#E3DFD7]">
+                        <h4 className="text-sm font-bold text-[#222925] mb-1">
+                          🧭 {currentLevel.psychoeducation.formulaTitle}
+                        </h4>
+                        <p className="text-xs sm:text-sm text-[#5C6660] mb-4">
+                          {currentLevel.psychoeducation.formulaIntro}
+                        </p>
+                        <div className="space-y-2.5">
+                          {currentLevel.psychoeducation.timeline.map((row, idx) => (
+                            <div
+                              key={idx}
+                              className="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 p-3 rounded-xl bg-white border border-[#ECE8E0]"
+                            >
+                              <span
+                                className={`inline-block w-fit px-2.5 py-0.5 rounded-md text-xs font-bold shrink-0 ${
+                                  row.time === "Terlambat"
+                                    ? "bg-[#F6E9E4] text-[#7E3C27]"
+                                    : "bg-[#E4EFE8] text-[#28533B]"
+                                }`}
+                              >
+                                {row.time}
+                              </span>
+                              <span className="text-xs sm:text-sm text-[#37413C] leading-relaxed">
+                                {row.activity}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Reflection Box */}
+                      <div className="mb-7">
+                        <label className="block text-sm font-bold text-[#222925] mb-2">
+                          ✍️ Refleksi Diri
+                        </label>
+                        <p className="text-xs sm:text-sm text-[#56605B] mb-2.5">
+                          {currentLevel.reflectionLabel}
+                        </p>
+                        <textarea
+                          rows="3"
+                          value={reflections[currentLevel.id] || ""}
+                          onChange={(e) =>
+                            setReflections((prev) => ({
+                              ...prev,
+                              [currentLevel.id]: e.target.value
+                            }))
+                          }
+                          placeholder="Tulis jawaban refleksimu di sini..."
+                          className="w-full rounded-xl border border-[#DDD8CE] bg-[#FAF9F6] p-3.5 text-sm text-[#222925] focus:outline-none focus:border-[#5A7668] focus:bg-white"
+                        />
+                      </div>
+
+                      {/* Checklist */}
+                      <div className="pt-5 border-t border-[#EFECE6]">
+                        <div className="text-xs font-bold uppercase tracking-wider text-[#5C6660] mb-3">
+                          Checklist Pemahaman & Komitmen
+                        </div>
+                        <div className="space-y-2.5">
+                          {currentLevel.checks.map((item, idx) => {
+                            const active = !!checks[`${currentLevel.id}-${idx}`];
+                            return (
+                              <button
+                                key={idx}
+                                type="button"
+                                onClick={() => toggleCheck(currentLevel.id, idx)}
+                                className={`w-full text-left flex items-center gap-3 p-3.5 rounded-xl border transition-colors ${
+                                  active
+                                    ? "bg-[#E8F1EC] border-[#9EC0AC] text-[#234934]"
+                                    : "bg-[#FAF9F6] border-[#E3DFD7] text-[#4A534E] hover:border-[#C5CFC9]"
+                                }`}
+                              >
+                                <span
+                                  className={`w-5 h-5 rounded-md flex items-center justify-center text-xs font-bold shrink-0 ${
+                                    active
+                                      ? "bg-[#5A7668] text-white"
+                                      : "border border-[#B7C0BA] bg-white"
+                                  }`}
+                                >
+                                  {active ? "✓" : ""}
+                                </span>
+                                <span className="text-sm font-medium">{item}</span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Level 3 & Final Level Sorting Content */}
+                  {currentLevel.kind === "sort" && (
+                    <div className="mt-6">
+                      <div className="p-4 rounded-2xl bg-[#F4F6F4] border border-[#DCE4DF] mb-5 flex items-center justify-between gap-3">
+                        <p className="text-sm text-[#37413C] font-medium">
+                          {currentLevel.prompt}
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => resetSortLevel(currentLevel)}
+                          className="text-xs font-semibold text-[#435A4E] hover:underline shrink-0"
+                        >
+                          Reset
+                        </button>
+                      </div>
+
+                      <div className="mb-5 flex items-center justify-between text-xs font-semibold text-[#5C6660] bg-[#FAF9F6] px-4 py-2.5 rounded-xl border border-[#ECE8E0]">
+                        <span>
+                          Terjawab: {currentLevel.items.filter((i) => !!sortedChoices[i.id]).length}/{currentLevel.items.length}
+                        </span>
+                        <span className="text-[#28533B]">
+                          Tepat: {countCorrectInLevel(currentLevel)}/{currentLevel.items.length}
+                        </span>
+                      </div>
+
+                      <div className="space-y-4">
+                        {currentLevel.items.map((item, idx) => {
+                          const choice = sortedChoices[item.id];
+                          const isRight = choice === item.answer;
+
+                          return (
+                            <div
+                              key={item.id}
+                              className={`p-4 sm:p-5 rounded-2xl border transition-colors ${
+                                !choice
+                                  ? "bg-[#FAF9F6] border-[#E6E2DA]"
+                                  : isRight
+                                  ? "bg-[#F1F7F3] border-[#A7C7B5]"
+                                  : "bg-[#FCF5F2] border-[#E2B8A9]"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3 mb-3.5">
+                                <span className="w-6 h-6 rounded-full bg-[#E5E8E6] text-[#35463D] text-xs font-bold flex items-center justify-center shrink-0 mt-0.5">
+                                  {idx + 1}
+                                </span>
+                                <p className="text-sm sm:text-base font-medium text-[#222925] leading-relaxed">
+                                  {item.text}
+                                </p>
+                              </div>
+
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:pl-9">
+                                <button
+                                  type="button"
+                                  onClick={() => pickSortOption(item.id, currentLevel.leftOption.key)}
+                                  className={`py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold border text-left transition-colors ${
+                                    choice === currentLevel.leftOption.key
+                                      ? currentLevel.leftOption.activeClass
+                                      : "bg-white border-[#DCD7CD] text-[#4A534E] hover:border-[#5A7668]"
+                                  }`}
+                                >
+                                  {currentLevel.leftOption.label}
+                                </button>
+
+                                <button
+                                  type="button"
+                                  onClick={() => pickSortOption(item.id, currentLevel.rightOption.key)}
+                                  className={`py-2.5 px-4 rounded-xl text-xs sm:text-sm font-semibold border text-left transition-colors ${
+                                    choice === currentLevel.rightOption.key
+                                      ? currentLevel.rightOption.activeClass
+                                      : "bg-white border-[#DCD7CD] text-[#4A534E] hover:border-[#B87D64]"
+                                  }`}
+                                >
+                                  {currentLevel.rightOption.label}
+                                </button>
+                              </div>
+
+                              {choice && (
+                                <div
+                                  className={`mt-3 sm:ml-9 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium ${
+                                    isRight
+                                      ? "bg-[#E4EFE8] text-[#28533B]"
+                                      : "bg-[#F6E9E4] text-[#7E3C27]"
+                                  }`}
+                                >
+                                  {isRight ? "✓ " : "• "}
+                                  {item.note}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {checkLevelDone(currentLevel) && (
+                        <div className="mt-6 p-5 rounded-2xl bg-[#E8F1EC] border border-[#9EC0AC] text-center">
+                          <div className="text-2xl mb-1">
+                            {currentLevel.id === 4 ? "🏅" : "✨"}
+                          </div>
+                          <div className="text-base font-bold text-[#234934]">
+                            {currentLevel.id === 4
+                              ? "Selamat! Kamu Telah Menuntaskan Final Level: Time Master!"
+                              : "Mission: On Time! Selesai dengan Tepat!"}
+                          </div>
+                          <p className="text-xs sm:text-sm text-[#395E4A] mt-1">
+                            {currentLevel.id === 4
+                              ? "Terus latih konsistensi dan tanggung jawabmu setiap pagi di sekolah."
+                              : "Lanjutkan ke Final Level untuk menguji ketepatan sikap disiplinmu."}
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Wordwall Game Button */}
+                  {currentLevel.wordwall && (
+                    <div className="mt-8 p-5 rounded-2xl bg-[#F4F6F4] border border-[#DCE4DF] text-center">
+                      <div className="text-xs font-bold uppercase tracking-wider text-[#5C6660] mb-3">
+                        🎮 PILAH DAN TEMUKAN SOLUSINYA - main di Wordwall
+                      </div>
+                      <a
+                        href={currentLevel.wordwall.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block px-5 py-3 rounded-xl text-sm font-semibold bg-[#C9833A] hover:bg-[#A96A2B] text-white transition-colors"
+                      >
+                        {currentLevel.wordwall.label} ↗
+                      </a>
+                      <p className="text-xs text-[#5C6660] mt-2">
+                        Terbuka di tab baru, progresmu di sini tetap aman.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Prev / Next Navigation */}
+                  <div className="mt-8 pt-5 border-t border-[#EFECE6] flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      disabled={currentLevel.id === 1}
+                      onClick={() => setSelectedId(currentLevel.id - 1)}
+                      className="px-4 py-2 rounded-xl text-sm font-semibold text-[#435A4E] hover:bg-[#F2EFE9] disabled:opacity-30 transition-colors"
+                    >
+                      ← Sebelumnya
+                    </button>
+
+                    {currentLevel.id < LEVELS.length ? (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedId(currentLevel.id + 1)}
+                        className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-[#5A7668] hover:bg-[#435A4E] text-white transition-colors"
+                      >
+                        Lanjut ke {LEVELS[currentLevel.id].badge} →
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => setSelectedId(null)}
+                        className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-[#5A7668] hover:bg-[#435A4E] text-white transition-colors"
+                      >
+                        Selesai & Kembali ✓
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+          </main>
+
+          <footer className="border-t border-[#E3DFD7] py-5 text-center text-xs text-[#6B756F]">
+            Ruang Tumbuh BK • Layanan Mandiri Kedisiplinan & Manajemen Waktu
+          </footer>
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+  </script>
+</body>
+</html>
